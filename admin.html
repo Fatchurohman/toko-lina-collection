@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard | Management & Finance</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { background-color: #0f1117; color: #e2e8f0; font-family: sans-serif; }
+    .card { background-color: #1e222d; border: 1px solid #2d3446; }
+  </style>
+</head>
+<body class="p-4 md:p-8 max-w-6xl mx-auto space-y-8">
+
+  <div class="flex justify-between items-center border-b border-gray-700 pb-4">
+    <h1 class="text-xl font-bold text-yellow-500">Panel Admin & Keuangan</h1>
+    <a href="index.html" class="text-xs bg-gray-800 px-3 py-2 rounded text-gray-300 hover:bg-gray-700">Ke Etalase Utama ↗</a>
+  </div>
+
+  <!-- RINGKASAN RUGI LABA -->
+  <section class="space-y-4">
+    <h2 class="text-lg font-semibold text-gray-200">📊 Ringkasan Laba Rugi</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="card p-5 rounded-xl">
+        <p class="text-xs text-gray-400 uppercase tracking-wider">Laba Hari Ini</p>
+        <h3 id="laba-harian" class="text-2xl font-bold text-green-400 mt-1">Rp 0</h3>
+      </div>
+      <div class="card p-5 rounded-xl">
+        <p class="text-xs text-gray-400 uppercase tracking-wider">Laba Bulan Ini</p>
+        <h3 id="laba-bulanan" class="text-2xl font-bold text-green-400 mt-1">Rp 0</h3>
+      </div>
+      <div class="card p-5 rounded-xl">
+        <p class="text-xs text-gray-400 uppercase tracking-wider">Laba Tahun Ini</p>
+        <h3 id="laba-tahunan" class="text-2xl font-bold text-green-400 mt-1">Rp 0</h3>
+      </div>
+    </div>
+  </section>
+
+  <!-- FORM ENTRI BARANG BARU (DENGAN UPLOAD FOTO) -->
+  <section class="card p-6 rounded-xl space-y-4">
+    <h2 class="text-lg font-semibold text-yellow-500">➕ Tambah Barang Baru</h2>
+    <form id="form-barang" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+      <input type="text" id="kode" placeholder="Kode Barang (misal: PKW-01)" required class="p-2.5 rounded bg-gray-900 border border-gray-700">
+      <input type="text" id="title" placeholder="Nama Barang" required class="p-2.5 rounded bg-gray-900 border border-gray-700">
+      
+      <select id="category" class="p-2.5 rounded bg-gray-900 border border-gray-700">
+        <option value="Pria">Pria</option>
+        <option value="Wanita">Wanita</option>
+        <option value="Anak">Anak-Anak</option>
+        <option value="Bedcover">Bedcover & Selimut</option>
+        <option value="Jarik">Jarik</option>
+      </select>
+
+      <input type="number" id="harga_beli" placeholder="Harga Beli (Rp)" required class="p-2.5 rounded bg-gray-900 border border-gray-700">
+      <input type="number" id="harga_jual" placeholder="Harga Jual (Rp)" required class="p-2.5 rounded bg-gray-900 border border-gray-700">
+      
+      <!-- Input Upload Gambar langsung dari Galeri HP -->
+      <div class="space-y-1">
+        <label class="text-xs text-gray-400 block">Pilih Foto Produk dari Galeri HP:</label>
+        <input type="file" id="foto_file" accept="image/*" required class="w-full text-xs text-gray-400 p-2 rounded bg-gray-900 border border-gray-700 file:mr-2 file:py-1 file:px-3 file:rounded file:border-0 file:text-xs file:bg-yellow-600 file:text-black">
+      </div>
+
+      <textarea id="description" placeholder="Penjelasan / Deskripsi Singkat" class="p-2.5 rounded bg-gray-900 border border-gray-700 md:col-span-2" rows="3"></textarea>
+
+      <button type="submit" id="btn-submit" class="md:col-span-2 bg-yellow-600 hover:bg-yellow-500 font-semibold text-black p-3 rounded-lg transition">Simpan Barang Ke Etalase</button>
+    </form>
+  </section>
+
+  <!-- FORM INPUT PENJUALAN (CATAT LABA) -->
+  <section class="card p-6 rounded-xl space-y-4">
+    <h2 class="text-lg font-semibold text-green-400">🛍️ Catat Transaksi Penjualan</h2>
+    <form id="form-penjualan" class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+      <select id="select-produk" class="p-2.5 rounded bg-gray-900 border border-gray-700 md:col-span-2">
+        <!-- Dimuat dari database -->
+      </select>
+      <input type="number" id="jumlah-jual" value="1" min="1" placeholder="Jumlah" class="p-2.5 rounded bg-gray-900 border border-gray-700">
+      <button type="submit" class="md:col-span-3 bg-green-600 hover:bg-green-500 font-semibold text-white p-3 rounded-lg transition">Catat Penjualan (Hitung Laba)</button>
+    </form>
+  </section>
+
+  <script>
+    const SUPABASE_URL = 'https://PROJECT_ID_KAMU.supabase.co';
+    const SUPABASE_KEY = 'ANON_KEY_SUPABASE_KAMU';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let dbProducts = [];
+
+    async function initAdmin() {
+      loadProductsSelect();
+      calculateProfit();
+    }
+
+    async function loadProductsSelect() {
+      const { data } = await _supabase.from('products').select('*');
+      dbProducts = data || [];
+      const select = document.getElementById('select-produk');
+      select.innerHTML = dbProducts.map(p => `
+        <option value="${p.id}">${p.kode_barang} - ${p.title} (Jual: Rp${p.harga_jual})</option>
+      `).join('');
+    }
+
+    // PROSES SIMPAN BARANG + UPLOAD GAMBAR DARI HP
+    document.getElementById('form-barang').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const btn = document.getElementById('btn-submit');
+      const fileInput = document.getElementById('foto_file');
+      const file = fileInput.files[0];
+
+      if (!file) {
+        alert('Harap pilih foto terlebih dahulu!');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = 'Mengunggah Foto & Menyimpan...';
+
+      try {
+        // 1. Upload foto ke Supabase Storage (Bucket: produk-foto)
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Date.now()}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { data: uploadData, error: uploadError } = await _supabase
+          .storage
+          .from('produk-foto')
+          .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        // 2. Ambil URL Publik foto yang baru di-upload
+        const { data: urlData } = _supabase
+          .storage
+          .from('produk-foto')
+          .getPublicUrl(filePath);
+
+        const imageUrl = urlData.publicUrl;
+
+        // 3. Simpan Data Barang ke Database
+        const newProduct = {
+          kode_barang: document.getElementById('kode').value,
+          title: document.getElementById('title').value,
+          category: document.getElementById('category').value,
+          harga_beli: Number(document.getElementById('harga_beli').value),
+          harga_jual: Number(document.getElementById('harga_jual').value),
+          image_url: imageUrl,
+          description: document.getElementById('description').value
+        };
+
+        const { error: dbError } = await _supabase.from('products').insert([newProduct]);
+        if (dbError) throw dbError;
+
+        alert('Barang & Foto Berhasil Disimpan!');
+        document.getElementById('form-barang').reset();
+        loadProductsSelect();
+
+      } catch (err) {
+        alert('Gagal menyimpan: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Simpan Barang Ke Etalase';
+      }
+    });
+
+    // CATAT PENJUALAN
+    document.getElementById('form-penjualan').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const pId = document.getElementById('select-produk').value;
+      const qty = Number(document.getElementById('jumlah-jual').value);
+      const product = dbProducts.find(p => p.id == pId);
+
+      if(!product) return;
+
+      const hbTotal = product.harga_beli * qty;
+      const hjTotal = product.harga_jual * qty;
+      const laba = hjTotal - hbTotal;
+
+      const salesData = {
+        product_id: pId,
+        jumlah: qty,
+        harga_beli_total: hbTotal,
+        harga_jual_total: hjTotal,
+        laba_bersih: laba
+      };
+
+      const { error } = await _supabase.from('sales').insert([salesData]);
+      if (error) alert('Gagal catat transaksi: ' + error.message);
+      else {
+        alert('Transaksi tersimpan!');
+        calculateProfit();
+      }
+    });
+
+    // HITUNG RUGI LABA
+    async function calculateProfit() {
+      const { data: sales, error } = await _supabase.from('sales').select('*');
+      if (error) return;
+
+      const now = new Date();
+      const todayStr = now.toISOString().split('T')[0];
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+
+      let labaHari = 0, labaBulan = 0, labaTahun = 0;
+
+      sales.forEach(s => {
+        const d = new Date(s.created_at);
+        const dStr = d.toISOString().split('T')[0];
+
+        if (dStr === todayStr) labaHari += Number(s.laba_bersih);
+        if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) labaBulan += Number(s.laba_bersih);
+        if (d.getFullYear() === currentYear) labaTahun += Number(s.laba_bersih);
+      });
+
+      document.getElementById('laba-harian').innerText = 'Rp ' + labaHari.toLocaleString('id-ID');
+      document.getElementById('laba-bulanan').innerText = 'Rp ' + labaBulan.toLocaleString('id-ID');
+      document.getElementById('laba-tahunan').innerText = 'Rp ' + labaTahun.toLocaleString('id-ID');
+    }
+
+    initAdmin();
+  </script>
+</body>
+</html>
