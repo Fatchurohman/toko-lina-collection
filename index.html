@@ -3,12 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Luxe Collection | Etalase Eksklusif</title>
-  <!-- Tailwind CSS -->
+  <title>LINA COLLECTION | Etalase Eksklusif</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   
   <style>
@@ -17,7 +14,6 @@
     .gold-accent { color: #d4af37; }
     .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
     
-    /* Animasi Kelap-Kelip (Pulsing Dot) */
     @keyframes pulse-green {
       0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
       70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
@@ -35,22 +31,28 @@
 </head>
 <body class="min-h-screen pb-16">
 
-  <!-- Header -->
-  <header class="sticky top-0 z-50 glass-card px-6 py-4 flex flex-col items-center justify-center border-b border-white/10">
-    <h1 class="font-serif-custom text-2xl md:text-3xl font-bold tracking-widest gold-accent text-center">LUXE BOUTIQUE</h1>
+  <!-- Header Utama -->
+  <header class="sticky top-0 z-50 glass-card px-6 py-4 flex flex-col items-center justify-center text-center border-b border-white/10">
+    <!-- Judul Toko -->
+    <h1 class="font-serif-custom text-3xl md:text-4xl font-bold tracking-widest gold-accent uppercase">LINA COLLECTION</h1>
     
-    <!-- Developer Badge dengan Animasi Kelap Kelip -->
-    <div class="flex items-center gap-2 mt-1">
+    <!-- Sub Judul Alamat & Telepon -->
+    <p class="text-xs md:text-sm text-gray-300 font-light mt-1 tracking-wide">
+      Perum Candi Gebang Permai blok DD12a, Telp. (0274)883124
+    </p>
+
+    <!-- Kredit Developer + Animasi Kelap-Kelip -->
+    <div class="flex items-center gap-2 mt-2">
       <span class="status-dot"></span>
       <span class="text-[11px] tracking-wider text-gray-400 font-mono">developer : fatur62</span>
     </div>
   </header>
 
   <!-- Hero Section -->
-  <section class="py-12 px-6 text-center max-w-3xl mx-auto">
-    <span class="text-xs uppercase tracking-[0.3em] gold-accent mb-2 block">Koleksi Pilihan</span>
-    <h2 class="font-serif-custom text-3xl md:text-5xl font-normal leading-tight mb-3">Pakaian & Perlengkapan Rumah</h2>
-    <p class="text-gray-400 text-xs md:text-sm max-w-lg mx-auto font-light">Pilihan busana pria, wanita, anak-anak, selimut, bedcover, hingga kain jarik tradisional.</p>
+  <section class="py-8 px-6 text-center max-w-3xl mx-auto">
+    <span class="text-xs uppercase tracking-[0.3em] gold-accent mb-2 block">Koleksi Fashion & Home Living</span>
+    <h2 class="font-serif-custom text-2xl md:text-3xl font-normal leading-tight mb-2">Pilihan Terbaik untuk Keluarga Anda</h2>
+    <p class="text-gray-400 text-xs md:text-sm max-w-lg mx-auto font-light">Menyediakan busana pria, wanita, anak-anak, selimut, bedcover, hingga kain jarik berkualitas.</p>
   </section>
 
   <!-- Filter Kategori -->
@@ -65,10 +67,10 @@
     </div>
   </section>
 
-  <!-- Grid Produk -->
+  <!-- Grid Produk Ringkas & Cepat Loading -->
   <section class="max-w-6xl mx-auto px-6">
     <div id="product-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-      <div class="col-span-full text-center py-12 text-gray-500 text-sm">Memuat katalog barang...</div>
+      <div class="col-span-full text-center py-12 text-gray-500 text-sm">Memuat koleksi LINA COLLECTION...</div>
     </div>
   </section>
 
@@ -95,22 +97,22 @@
       grid.innerHTML = items.map(p => `
         <div class="glass-card rounded-xl overflow-hidden flex flex-col justify-between group">
           <div>
-            <div class="aspect-[3/4] overflow-hidden bg-gray-900 relative">
-              <img src="${p.image_url || 'https://via.placeholder.com/400x500?text=No+Image'}" alt="${p.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-              <span class="absolute top-2 left-2 text-[10px] uppercase tracking-wider bg-black/70 backdrop-blur-md px-2 py-0.5 rounded text-gray-300">${p.category}</span>
+            <div class="aspect-[4/5] overflow-hidden bg-gray-900 relative">
+              <img src="${p.image_url}" alt="${p.title}" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+              <span class="absolute top-2 left-2 text-[9px] uppercase tracking-wider bg-black/70 backdrop-blur-md px-2 py-0.5 rounded text-gray-300">${p.category}</span>
             </div>
-            <div class="p-3.5">
-              <p class="text-[10px] font-mono text-gray-500 uppercase">${p.kode_barang}</p>
-              <h3 class="font-serif-custom text-base md:text-lg font-semibold tracking-wide text-gray-100 mt-0.5">${p.title}</h3>
+            <div class="p-3">
+              <p class="text-[9px] font-mono text-gray-500 uppercase">${p.kode_barang}</p>
+              <h3 class="font-serif-custom text-base font-semibold tracking-wide text-gray-100 mt-0.5">${p.title}</h3>
               <p class="text-xs text-gray-400 mt-1 line-clamp-2 font-light">${p.description || ''}</p>
               <p class="text-sm font-semibold gold-accent mt-2">Rp ${Number(p.harga_jual).toLocaleString('id-ID')}</p>
             </div>
           </div>
-          <div class="p-3.5 pt-0">
-            <a href="https://wa.me/6281234567890?text=Halo,%20saya%20tertarik%20dengan%20produk:%20${encodeURIComponent(p.title)}%20(Kode:%20${p.kode_barang})" 
+          <div class="p-3 pt-0">
+            <a href="https://wa.me/6281234567890?text=Halo%20LINA%20COLLECTION,%20saya%20tertarik%20dengan%20produk:%20${encodeURIComponent(p.title)}%20(Kode:%20${p.kode_barang})" 
                target="_blank" 
-               class="block w-full text-center py-2 text-[11px] uppercase tracking-widest bg-white/5 hover:bg-yellow-600 hover:text-black border border-white/10 rounded-lg transition duration-300">
-               Tanya via WA
+               class="block w-full text-center py-2 text-[10px] uppercase tracking-widest bg-white/5 hover:bg-yellow-600 hover:text-black border border-white/10 rounded-lg transition duration-300">
+               Tanya Produk
             </a>
           </div>
         </div>
